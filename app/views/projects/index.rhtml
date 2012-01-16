@@ -26,6 +26,7 @@
 			<% spanicon = "" %>
 			<% openonclick = "" %>
 			<% showchildren = false %>
+			<% project_id_lsd = "%04d" % project.id %>
 			<% project.children.each do |child| %>
 			  <% if @projects.include?(child) %>
 			    <% showchildren = true %>
@@ -33,39 +34,41 @@
   			  <% end %>
   			<% end %>
 			<% if(!project.children.empty? && showchildren) %>
-				<% classes += " closed parent " + cycle("odd", "even") %>
-				<% rowid = "id=\""+project.id.to_s+"span\"" %>
-				<% openonclick = "onclick=\"showHide('"+project.id.to_s+"','"+project.id.to_s+"span')\""%>
-				<% spanicon = "<span " + openonclick + " class=\"expander\">&nbsp  </span>" %>
-			<% else %>
-				<% classes += " child" %>
-			<% end %>
-			<% if(project.parent_id == nil) %>
-				<% ancestors.clear %>
-				<% ancestors << project.id %>	
-			<% else %>
-				<% while (ancestors.any? && !(project.parent_id == ancestors.last)) %>
-					<% ancestors.pop %>
-				<% end %>
-				<% classes += " hide" %>
-				<% if( !(ancestors.detect {|pid| pid == project.parent_id })) %>
-					<% prvclasses = "closed show parent " + cycle("odd", "even") %>
-					<% ancestors.each do |pid| %>
-						<% prvclasses += " " + pid.to_s %>
-					<% end %>
-					<% openonclick = "onclick=\"showHide('"+project.parent_id.to_s+"','"+project.parent_id.to_s+"span')\"" %>
-					<tr class="<%= prvclasses %>" id="<%= project.parent_id.to_s + "span" %>" >
-						<td class="name" ><%= "<span style=\"padding-left: " + (2*(ancestors.length-1)).to_s + "em;\"></span>" %><%="<span " + openonclick + " class=\"expander\" >&nbsp </span>" %><%= h("<Private Project>") %><span <%= openonclick %> class="empty">&nbsp</span></td>
-						<td <%= openonclick %> >Project is private. </td>
-						</span>
-					</tr>
-					<% ancestors << project.parent_id %>
-				<% end %>
-				<% ancestors.each do |pid| %>
-					<% classes += " " + pid.to_s %>
-				<% end %>
-				<% ancestors << project.id %>
-			<% end %> 
+                                <% classes += " closed parent " + cycle("odd", "even") %>
+                                <% rowid = "id=\""+project_id_lsd+"span\"" %>
+                                <% openonclick = "onclick=\"showHide('"+project_id_lsd+"','"+project_id_lsd+"span')\""%>
+                                <% spanicon = "<span " + openonclick + " class=\"expander\">&nbsp  </span>" %>
+                        <% else %>
+                                <% classes += " child" %>
+                        <% end %>
+                        <% if(project.parent_id == nil) %>
+                                <% ancestors.clear %>
+                                <% ancestors << project.id %>   
+                        <% else %>
+                                <% while (ancestors.any? && !(project.parent_id == ancestors.last)) %>
+                                        <% ancestors.pop %>
+                                <% end %>
+                                <% classes += " hide" %>
+                                <% if( !(ancestors.detect {|pid| pid == project.parent_id })) %>
+                                        <% prvclasses = "closed show parent " + cycle("odd", "even") %>
+                                        <% ancestors.each do |pid| %>
+                                                <% prvclasses += " " + "%04d" % pid %>
+                                        <% end %>
+                                        
+                                        <% project_parent_id_lsd = "%04d" % project.parent.id %>
+                                        <% openonclick = "onclick=\"showHide('"+project_parent_id_lsd+"','"+project_parent_id_lsd+"span')\"" %>
+                                        <tr class="<%= prvclasses %>" id="<%= project_parent_id_lsd + "span" %>" >
+                                                <td class="name" ><%= "<span style=\"padding-left: " + (2*(ancestors.length-1)).to_s + "em;\"></span>" %><%="<span " + openonclick + " class=\"expander\" >&nbsp </span>" %><%= h("<Private Project>") %><span <%= openonclick %> class="empty">&nbsp</span></td>
+                                                <td <%= openonclick %> >Project is private. </td>
+                                                </span>
+                                        </tr>
+                                        <% ancestors << project.parent_id %>
+                                <% end %>
+                                <% ancestors.each do |pid| %>
+                                        <% classes += " " + "%04d" % pid %>
+                                <% end %>
+                                <% ancestors << project.id %>
+                        <% end %> 
 			<tr class="<%= classes %>" <%= rowid %> >
 				<td class="name"><%= "<span style=\"padding-left: " + (2*(ancestors.length-1)).to_s + "em;\"></span>" %><%= spanicon %><%= project.active? ? link_to(h(project.name), {:controller => 'projects', :action => 'show', :id => project}, :class => "project") : h(project.name) %><span <%= openonclick %> class="empty <%=User.current.member_of?(project) ? 'my-project' : nil%>">&nbsp</span></td>
 				<td <%= openonclick %> ><%= textilizable project.short_description.gsub(/\!.+\!/,""), :project => project %></td>
